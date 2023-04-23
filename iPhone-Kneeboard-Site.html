@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Aviation Weather Display</title>
+    <style>
+      /* CSS styles go here */
+      .weather-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        font-family: Arial, sans-serif;
+      }
+      
+      .weather-display__icon {
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        margin-right: 20px;
+        background-image: url('https://openweathermap.org/img/wn/01d.png');
+        background-size: contain;
+        background-repeat: no-repeat;
+      }
+      
+      .weather-display__info {
+        text-align: center;
+      }
+      
+      .error-message {
+        color: red;
+        font-size: 20px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="weather-display">
+      <i class="weather-display__icon"></i>
+      <div class="weather-display__info">
+        <h2 id="temperature"></h2>
+        <p id="wind"></p>
+        <p id="conditions"></p>
+      </div>
+    </div>
+    <div id="error-message" class="error-message"></div>
+    <script>
+      // JavaScript code goes here
+      const apiKey = "P0VXEklcJ4ehzvSjTB8Eed10lu_pLzJq7eQvV2QcxVo";
+      const temperatureElement = document.getElementById("temperature");
+      const windElement = document.getElementById("wind");
+      const conditionsElement = document.getElementById("conditions");
+      
+      function displayWeatherInfo(data) {
+        temperatureElement.textContent = `${data.temperature}°C`;
+        windElement.textContent = `Wind: ${data.wind}m/s`;
+        conditionsElement.textContent = `Conditions: ${data.conditions}`;
+      }
+      
+      function displayErrorMessage(message) {
+        document.getElementById("error-message").textContent = message;
+      }
+      
+      function getWeatherData(latitude, longitude) {
+        const apiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${apiKey}`;
+        fetch(apiUrl)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error("Unable to retrieve weather data.");
+            }
+            return response.json();
+          })
+          .then(data => {
+            const temperature = data.main.temp;
+            const wind = data.wind.speed;
+            const conditions = data.weather[0].description;
+            const weatherData = { temperature, wind, conditions };
+            displayWeatherInfo(weatherData);
+          })
+          .catch(error => {
+            displayErrorMessage(error.message);
+          });
+      }
+      
+      function getLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            getWeatherData(latitude, longitude);
+          }, error => {
+            displayErrorMessage(error.message);
+          });
+        } else {
+          displayErrorMessage("Geolocation is not supported by your browser.");
+        }
+      }
+      
+      getLocation();
+    </script>
+  </body>
+</html>
